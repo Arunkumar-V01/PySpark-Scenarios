@@ -1,0 +1,20 @@
+data = [
+    ('A', 'D', 'D'),
+    ('B', 'A', 'A'),
+    ('A', 'D', 'A')
+]
+
+df = spark.createDataFrame(data).toDF("TeamA", "TeamB", "Won")
+
+df.show()
+
+
+
+unionfn=df.select("TeamA").union(df.select("TeamB")).distinct().withColumnRenamed("TeamA","TeamName")
+unionfn.show()
+from pyspark.sql.functions import *
+result=((unionfn.join(df,unionfn["TeamName"]==df["Won"],"left"))
+         .groupby("TeamName")
+         .agg(count("Won").alias("Won"))
+         .orderBy("TeamName"))
+result.show()
